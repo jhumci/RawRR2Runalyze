@@ -1,0 +1,16 @@
+This export is of all of your raw RR interval data.
+
+Every reading that you have ever taken is included in this folder. Each file is an individual reading and is named by date and time of that reading.
+
+Within the file is a line separated list of RR intervals. These can be uploaded into a software like Kubios for further analysis.
+
+How to interpret the file name:
+
+2015-05-12 07-48-32 means:
+
+Year 2015
+Month 05
+Day 12
+Hour 07
+Minute 48
+Second 32
