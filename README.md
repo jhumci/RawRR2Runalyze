@@ -3,15 +3,16 @@
 A script that takes raw RR-data, computes HRV-metrics and pushes it to the Runalyze Personal API
 
 - [x] Unpack zip from Elite HRV
-- [ ] Create log with things that already have been pushed
-- [ ] Decide for Measurements to store
+- [ ] Fix log with things that already have been pushed
+- [x] Decide for Measurements to store
     - Store HR
-    - Read what metric is best to evaluarte recovery
+    - Read what metric is best to evaluarte recovery -> rmssd seems correct for short term readings
     - https://www.marcoaltini.com/blog/a-look-at-a-few-months-of-hr-and-hrv-measurements
-- [ ] Push to API and store success
-- [ ] Loop files
+- [x] Push to API and store success
+- [x] Loop files
 - [ ] Optimize I/O Operations and use tinyDB
-- [ ] Add Resting HR
+- [x] Add Resting HR
+- [ ] Find way to automate rr-exports
 
 ## Installation
 
@@ -30,6 +31,11 @@ POST
   "lnrmssd": 25
 }
 ```
+
+rmssd - short readings
+sdnn - short readings
+
+https://www.youtube.com/watch?v=h9_cwC-rxA0
 
 You can only push one value
 

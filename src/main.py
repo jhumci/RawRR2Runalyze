@@ -5,6 +5,8 @@ import json
 from datetime import datetime
 import requests
 import configparser
+import math
+import os
 
 RUNALYZE_API_ENDPOINT = 'https://runalyze.com/api/v1/'
 
@@ -14,10 +16,7 @@ apitoken = config.get("configuration","apitoken")
 
 zip_path = config.get("configuration","zip_path")
 default_measurement_state = config.get("configuration","default_measurement_state")
-raw_data_patch = config.get("configuration","raw_data_path")
-"""zip_path = 'export.zip'
-default_measurement_state = 'awake'
-raw_data_patch = 'data'"""
+raw_data_path = config.get("configuration","raw_data_path")
 
 processed_data_log_path = 'data/processed.json'
 
@@ -53,7 +52,9 @@ def process_file(file_path : str) -> None:
             print(f"File {file.name} already processed. Skipping...")
         
 
-        data_dict = {}
+        hrv_data_dict = {}
+        resting_hr_data_dict = {}
+
         rr_values = file.read()
         rr_values = rr_values.split('\n')
         rr_values = [int(i) for i in rr_values if i]
@@ -61,22 +62,27 @@ def process_file(file_path : str) -> None:
         
         
         rmssd = calculate_rmssd(rr_values)
-        sdsd = calculate_sdsd(rr_values)
-        lnrmssd = calculate_lnrmssd(rr_values)
-        hrv = calculate_hrv(rmssd, sdsd, lnrmssd)
+        hr = calculate_hr(rr_values)
+
 
         
-        data_dict['date_time'] = parse_unixtime_to_runalyze_format(unix_time)
-        data_dict['measurement_type'] = default_measurement_state
-        data_dict['rmssd'] = rmssd
-        #data_dict['hrv'] = int(hrv)
-        #data_dict['sdnn'] = sdsd
-        #data_dict['lnrmssd'] = lnrmssd
-        data_dict['Sent to API'] = False
+        hrv_data_dict['date_time'] = parse_unixtime_to_runalyze_format(unix_time)
+        hrv_data_dict['measurement_type'] = default_measurement_state
+        hrv_data_dict['rmssd'] = rmssd
+        
+        hrv_data_dict['sent_to_api'] = False
 
-        print(data_dict)
+        resting_hr_data_dict['sent_to_api'] = False
+        resting_hr_data_dict['date_time'] = parse_unixtime_to_runalyze_format(unix_time)
+        resting_hr_data_dict['heart_rate'] = hr
+        
+        print(hrv_data_dict)
+        print(resting_hr_data_dict)
 
-        processed_data_log[file_id] = data_dict
+        processed_data_log[file_id] = {}
+        processed_data_log[file_id]["hrv"] = hrv_data_dict
+        processed_data_log[file_id]["resting_hr"] = resting_hr_data_dict
+
 
         with open(processed_data_log_path, 'w') as file:
             json.dump(processed_data_log, file, indent=4)
@@ -84,40 +90,35 @@ def process_file(file_path : str) -> None:
         
         return file_id
 
+def calculate_hr(rr_diff : list) -> float:
+    """
+    A Function that calculates the HR from the RR-values.
+    """
+    # Calculate the HR from the RR-values
+    hr = 60000 / np.mean(rr_diff)
+    return hr
 
 
-def calculate_rmssd(rr_values : list) -> float:
+
+def calculate_rmssd(rr_intervals : list) -> float:
     """
     A Function that calculates the RMSSD from the RR-values.
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5624990/ 
     """
-    rr_diff = np.diff(rr_values)
-    rr_diff = rr_diff ** 2
-    rmssd = np.sqrt(np.mean(rr_diff))
+    # Step 1: Calculate successive differences
+    successive_diff = [rr_intervals[i + 1] - rr_intervals[i] for i in range(len(rr_intervals) - 1)]
+
+    # Step 2: Square each successive difference
+    squared_diff = [diff ** 2 for diff in successive_diff]
+
+    # Step 3: Calculate the mean of squared differences
+    mean_squared_diff = sum(squared_diff) / (len(squared_diff)-1)
+
+    # Step 4: Calculate the square root of the mean squared differences to get RMSSD
+    rmssd = math.sqrt(mean_squared_diff)
+
     return rmssd
 
-
-def calculate_sdsd(rr_values : list) -> float:
-    """
-    A Function that calculates the SDSD from the RR-values.
-    """
-    rr_diff = np.diff(rr_values)
-    sdsd = np.std(rr_diff)
-    return sdsd
-
-def calculate_lnrmssd(rr_values : list) -> float:
-    """
-    A Function that calculates the lnRMSSD from the RR-values.
-    """
-    rmssd = calculate_rmssd(rr_values)
-    lnrmssd = np.log(rmssd)
-    return lnrmssd
-
-def calculate_hrv(rmssd : float, sdsd : float, lnrmssd : float) -> str:
-    """
-    A Function that calculates a numeric HRV score from the RMSSD, SDSD and lnRMSSD.
-    """
-    hrv = rmssd + sdsd + lnrmssd
-    return hrv
   
 
 
@@ -151,7 +152,7 @@ def parse_unixtime_to_runalyze_format(unix_time : int) -> str:
     print("Formatted Date:", formatted_date)
     return formatted_date
 
-def send_to_api(data_dict : dict) -> None:
+def send_to_api(metric : str, data_dict : dict) -> int:
     """
     A Function that sends the data to the Runalyze API.
     POST ​/api​/v1​/metrics​/hrv
@@ -160,8 +161,14 @@ def send_to_api(data_dict : dict) -> None:
     # Send the data to the Runalyze API
     print("Sending data to the Runalyze API...")
 
+    # remove pair from dictionary
+    data_dict.pop('sent_to_api')
+
     # Set the URL for the Runalyze API
-    url = "https://runalyze.com/api/v1/metrics/hrv"
+    if metric == 'hrv':
+        url = "https://runalyze.com/api/v1/metrics/hrv"
+    if metric == 'resting_hr':
+        url = "https://runalyze.com/api/v1/metrics/heartRateRest"
 
     #url = 'https://runalyze.com/api/v1/ping'
     headers = {'token': f'{apitoken}', 'Content-Type': 'application/json'}
@@ -174,10 +181,11 @@ def send_to_api(data_dict : dict) -> None:
     if response.status_code == 201:
         
         print("Data sent successfully!")
-        print(response._content.decode('utf-8'))
-        return 200
+        #print(response._content.decode('utf-8'))
+        return 201
     else:
-        print(f"Failed to send data! Status code: {response.status_code}")
+        #print(f"Failed to send data! Status code: {response.status_code}")
+        print(f"Failed to send data! at {url}")
         return response.status_code
 
 
@@ -195,11 +203,38 @@ def load_processed_data_log() -> dict:
 
 
 if __name__ == '__main__':
-    unzip_data(zip_path, raw_data_patch)
+    unzip_data(zip_path, raw_data_path)
 
-    file_path = r"data\Julian\2024-03-07 21-43-06.txt"
+    #file_path = r"data\Julian_Huber\2024-03-08 06-52-35.txt"
     
-    file_id = process_file(file_path)
+    # loop all text files in the data folder
+    # including subfolders
+
+    for root, dirs, files in os.walk(raw_data_path):
+        for file in files:
+
+            if file.endswith(".txt"):
+                if file.startswith("!"):
+                    continue
+                file_path = os.path.join(root, file)
+
+                file_id = process_file(file_path)
 
     data_log = load_processed_data_log()
-    send_to_api(data_log[file_id])
+
+    # loop thorugh the data log and send the data to the API if it has not been sent yet
+
+    for file_id in data_log:
+
+        for metric in ['hrv']: # , 'resting_hr
+            if not data_log[file_id][metric]['sent_to_api']:
+                data_dict = data_log[file_id][metric]
+                print(data_dict)
+                response = send_to_api(metric, data_dict)
+                if response == 201:
+                    data_log[file_id][metric]['sent_to_api'] = True
+    
+    with open(processed_data_log_path, 'w') as file:
+        json.dump(data_log, file, indent=4) 
+
+    #send_to_api(data_log[file_id])
