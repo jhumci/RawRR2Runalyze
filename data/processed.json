@@ -4,48 +4,51 @@
             "date_time": "2024-03-07T20:43:06Z",
             "measurement_type": "awake",
             "rmssd": 118.7328081438729,
-            "sent_to_api": true
+            "sent_to_api": false
         },
         "resting_hr": {
-            "sent_to_api": false,
+            "sent_to_api": true,
             "date_time": "2024-03-07T20:43:06Z",
-            "heart_rate": 73.75900474516264
+            "heart_rate": 73
         }
     },
     "2024-03-07 21-47-20": {
         "hrv": {
             "date_time": "2024-03-07T20:47:20Z",
             "measurement_type": "awake",
-            "rmssd": 71.9397294637996
+            "rmssd": 71.9397294637996,
+            "sent_to_api": false
         },
         "resting_hr": {
-            "sent_to_api": false,
+            "sent_to_api": true,
             "date_time": "2024-03-07T20:47:20Z",
-            "heart_rate": 75.2763308347097
+            "heart_rate": 75
         }
     },
     "2024-03-08 06-52-35": {
         "hrv": {
             "date_time": "2024-03-08T05:52:35Z",
             "measurement_type": "awake",
-            "rmssd": 63.2030190862875
+            "rmssd": 63.2030190862875,
+            "sent_to_api": false
         },
         "resting_hr": {
             "sent_to_api": false,
             "date_time": "2024-03-08T05:52:35Z",
-            "heart_rate": 73.36642015026383
+            "heart_rate": 73
         }
     },
     "2024-03-09 07-29-12": {
         "hrv": {
             "date_time": "2024-03-09T06:29:12Z",
             "measurement_type": "awake",
-            "rmssd": 45.05948449391252
+            "rmssd": 45.05948449391252,
+            "sent_to_api": false
         },
         "resting_hr": {
-            "sent_to_api": false,
+            "sent_to_api": true,
             "date_time": "2024-03-09T06:29:12Z",
-            "heart_rate": 78.50860092122045
+            "heart_rate": 78
         }
     }
 }

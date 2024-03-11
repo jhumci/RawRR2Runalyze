@@ -69,7 +69,6 @@ def process_file(file_path : str) -> None:
         hrv_data_dict['date_time'] = parse_unixtime_to_runalyze_format(unix_time)
         hrv_data_dict['measurement_type'] = default_measurement_state
         hrv_data_dict['rmssd'] = rmssd
-        
         hrv_data_dict['sent_to_api'] = False
 
         resting_hr_data_dict['sent_to_api'] = False
@@ -96,7 +95,7 @@ def calculate_hr(rr_diff : list) -> float:
     """
     # Calculate the HR from the RR-values
     hr = 60000 / np.mean(rr_diff)
-    return hr
+    return int(hr)
 
 
 
@@ -226,12 +225,13 @@ if __name__ == '__main__':
 
     for file_id in data_log:
 
-        for metric in ['hrv']: # , 'resting_hr
+        for metric in ['hrv', 'resting_hr']: # , 'resting_hr
             if not data_log[file_id][metric]['sent_to_api']:
                 data_dict = data_log[file_id][metric]
+                data_dict_send = data_dict.copy()
                 print(data_dict)
-                response = send_to_api(metric, data_dict)
-                if response == 201:
+                response = send_to_api(metric, data_dict_send)
+                if response == 201 or response == 200:
                     data_log[file_id][metric]['sent_to_api'] = True
     
     with open(processed_data_log_path, 'w') as file:

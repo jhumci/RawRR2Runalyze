@@ -23,8 +23,9 @@ processed_data_log_path = 'data/processed.json'
 
 hr_dict = {
             "date_time": "2024-03-08T05:52:35Z",
-            "heart_rate": 73.36642015026383
+            "heart_rate": 73
         }
+#hr_dict = "{\"date_time\":\"2020-10-01T23:00:00Z\",\"heart_rate\":70}"
 
 
 def send_to_api(metric : str, data_dict : dict) -> int:
@@ -45,6 +46,7 @@ def send_to_api(metric : str, data_dict : dict) -> int:
     if metric == 'resting_hr':
         url = "https://runalyze.com/api/v1/metrics/heartRateRest"
 
+    # curl -X POST "https://runalyze.com/api/v1/metrics/heartRateRest" -H "accept: */*" -H "Content-Type: application/json" -H "token: " -d "{\"date_time\":\"2020-10-01T23:00:00Z\",\"heart_rate\":70}"
     #url = 'https://runalyze.com/api/v1/ping'
     headers = {'token': f'{apitoken}', 'Content-Type': 'application/json'}
 
@@ -61,6 +63,7 @@ def send_to_api(metric : str, data_dict : dict) -> int:
     else:
         #print(f"Failed to send data! Status code: {response.status_code}")
         print(f"Failed to send data! at {url}")
+        print(response.reason)
         return response.status_code
     
 print(send_to_api('resting_hr', hr_dict))
