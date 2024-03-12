@@ -14,12 +14,11 @@ A script that takes raw RR-data, computes HRV-metrics and pushes it to the Runal
 - [x] Add Resting HR
 - [ ] Find way to automate rr-exports
 
-## Installation
+## Know-How
 
-https://runalyze.com/doc/personal
+[Runalzye API](https://runalyze.com/doc/personal)
 
-POST
-​/api​/v1​/metrics​/hrv
+`POST ​/api​/v1​/metrics​/hrv`
 
 ```JSON
 {
@@ -31,13 +30,15 @@ POST
   "lnrmssd": 25
 }
 ```
+You can only push one value to the API
 
-rmssd - short readings
-sdnn - short readings
+### HRV metrics
 
-https://www.youtube.com/watch?v=h9_cwC-rxA0
+- rmssd - for longer readings
+- sdnn - for short readings
+- see: https://www.youtube.com/watch?v=h9_cwC-rxA0
 
-You can only push one value
+
 
 ## Setup
 
