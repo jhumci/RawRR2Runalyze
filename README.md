@@ -44,6 +44,7 @@ You can only push one value to the API
 
 - Create API Token: https://runalyze.com/settings/personal-api
 - Add File `configs/config.txt`
+
 ````
 [configuration]
 apitoken = 
