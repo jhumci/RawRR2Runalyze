@@ -3,7 +3,7 @@
 A script that takes raw RR-data, computes HRV-metrics and pushes it to the Runalyze Personal API
 
 - [x] Unpack zip from Elite HRV
-- [ ] Fix log with things that already have been pushed
+- [x] Fix log with things that already have been pushed
 - [x] Decide for Measurements to store
     - Store HR
     - Read what metric is best to evaluarte recovery -> rmssd seems correct for short term readings
